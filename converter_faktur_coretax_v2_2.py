@@ -99,10 +99,28 @@ def get_tin(faktur):
     return ""
 
 
+def normalize_join_key(value):
+    """Normalize Baris value from Excel/Google Sheet.
+
+    Google Sheet export can sometimes return 1 as 1, 1.0, or '1'.
+    This function makes those formats match each other when joining
+    Faktur and DetailFaktur.
+    """
+    if value is None:
+        return ""
+    try:
+        num = Decimal(str(value).strip())
+        if num == num.to_integral_value():
+            return str(int(num))
+    except Exception:
+        pass
+    return str(value).strip()
+
+
 def build_xml(faktur, detail):
     detail_by = {}
     for d in detail:
-        key = str(d.get(JOIN_KEY_COL_NAME, "")).strip()
+        key = normalize_join_key(d.get(JOIN_KEY_COL_NAME, ""))
         detail_by.setdefault(key, []).append(d)
 
     root = ET.Element("TaxInvoiceBulk")
@@ -110,7 +128,7 @@ def build_xml(faktur, detail):
     list_el = ET.SubElement(root, "ListOfTaxInvoice")
 
     for f in faktur:
-        baris = str(f.get(JOIN_KEY_COL_NAME, "")).strip()
+        baris = normalize_join_key(f.get(JOIN_KEY_COL_NAME, ""))
         inv = ET.SubElement(list_el, "TaxInvoice")
 
         for col, tag in FAKTUR_COL_TO_XML.items():
@@ -151,7 +169,7 @@ def run():
         faktur = read_sheet(wb[SHEET_FAKTUR], FAKTUR_HEADER_ROW)
         detail = read_sheet(wb[SHEET_DETAIL], DETAIL_HEADER_ROW)
         xml = build_xml(faktur, detail)
-        xml.write(xml_path, encoding="utf-8", xml_declaration=True)
+        xml.write(xml_path, encoding="utf-8", xml_declaration=True, short_empty_elements=False)
         print("\n==============================================")
         print(" XML berhasil dibuat:")
         print(" -->", xml_path)
