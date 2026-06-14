@@ -6,7 +6,7 @@ import requests
 import streamlit as st
 from openpyxl import load_workbook
 
-from converter_faktur_coretax_v2_3 import (
+from converter_faktur_coretax_v2_2 import (
     read_sheet,
     build_xml,
     SHEET_FAKTUR,
