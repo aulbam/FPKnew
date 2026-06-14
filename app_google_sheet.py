@@ -6,7 +6,7 @@ import requests
 import streamlit as st
 from openpyxl import load_workbook
 
-from converter_faktur_coretax_v2_2 import (
+from converter_faktur_coretax_v2_3 import (
     read_sheet,
     build_xml,
     SHEET_FAKTUR,
@@ -79,7 +79,12 @@ def convert_xlsx_to_xml_bytes(xlsx_path: Path) -> bytes:
 
     xml_tree = build_xml(faktur, detail)
     xml_output_path = xlsx_path.with_suffix(".xml")
-    xml_tree.write(xml_output_path, encoding="utf-8", xml_declaration=True)
+    xml_tree.write(
+        xml_output_path,
+        encoding="utf-8",
+        xml_declaration=True,
+        short_empty_elements=False,
+    )
 
     return xml_output_path.read_bytes()
 
